@@ -246,6 +246,8 @@ cp a-share-research-framework/SKILL.md ./AGENTS.md</pre>
 ├── README.md             <span style="color:#6b7686"># 文档</span><br/>
 ├── index.html            <span style="color:#6b7686"># 本页（GitHub Pages 落地页）</span><br/>
 ├── LICENSE               <span style="color:#6b7686"># MIT</span><br/>
+├── companions.md         <span style="color:#6b7686"># 配套 Skill 清单 + 各 Agent 安装</span><br/>
+├── install-companions.sh <span style="color:#6b7686"># WorkBuddy 一键安装脚本</span><br/>
 ├── .gitignore<br/>
 └── <span class="dir">examples/</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;├── 投研可视化报告_模板.html   <span style="color:#6b7686"># ⭐ 默认产出母版</span><br/>
@@ -253,6 +255,35 @@ cp a-share-research-framework/SKILL.md ./AGENTS.md</pre>
 &nbsp;&nbsp;&nbsp;&nbsp;├── 中际旭创_投研决策备忘录.md<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;└── 投研决策备忘录_模板.md
     </div>
+  </section>
+
+  <!-- DEPENDENCIES -->
+  <section id="deps">
+    <h2><span class="num">🧩</span>依赖与一键安装（让陌生人也能用）</h2>
+    <p class="sub">本框架是"编排层"，不强依赖配套 Skill——缺失时自动降级，克隆即可跑。</p>
+
+    <div class="card" style="margin-bottom:18px">
+      <h4>🔑 核心设计：自检 → 降级 → 引导</h4>
+      <p>任务开始先声明已装 / 缺失哪些配套 Skill；缺失时**不中断**，改用联网搜索 + 公开数据源（东方财富 / 同花顺 / 公司公告）+ 推理兜底；报告末尾附一行安装提示。这样任何拿到仓库的人都能立即产出一份结构化投研报告。</p>
+    </div>
+
+    <table>
+      <thead><tr><th>阶段</th><th>角色</th><th>配套 Skill（推荐）</th><th>缺失时</th></tr></thead>
+      <tbody>
+        <tr><td>② 数据筛选</td><td>数据员</td><td><code>a-stock-data</code></td><td>降级：联网检索行情/财务</td></tr>
+        <tr><td>③ 催化验证</td><td>情报员</td><td><code>alphaear-news</code></td><td>降级：新闻检索+事实核验</td></tr>
+        <tr><td>④ 产业链</td><td>行业研究员</td><td><code>industry-chain-analysis</code></td><td>降级：公开研报+推理</td></tr>
+        <tr><td>⑤ 委员会</td><td>投资委员会</td><td><code>UZI-Skill</code></td><td>内置四要素模板兜底</td></tr>
+        <tr><td>⑦ 跟踪</td><td>盯盘风控员</td><td><code>a-share-watch-copilot</code></td><td>可选，缺失无影响</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin:22px 0 10px;font-size:16px">WorkBuddy：一键安装配套</h3>
+    <pre>bash install-companions.sh</pre>
+    <p style="color:var(--muted);font-size:14px">完整清单与每个 Skill 的来源见 <a href="companions.md">companions.md</a>。其余 <code>a-stock-data</code> / <code>UZI-Skill</code> 等在 WorkBuddy 技能市场搜索安装。</p>
+
+    <h3 style="margin:22px 0 10px;font-size:16px">Codex / Claude Code / Cursor 等</h3>
+    <p style="color:var(--muted);font-size:14px">配套 Skill 是 WorkBuddy 运行时概念，这些 Agent 无法直接"安装"它们；框架以"方法论"运行，用各自原生的联网与推理跑通 8 阶段。你也可在 <code>CLAUDE.md</code> / <code>AGENTS.md</code> 追加："行情数据优先联网检索东方财富 / 同花顺 / 公司公告等公开来源"。</p>
   </section>
 
   <!-- COMPLIANCE -->
