@@ -1,6 +1,8 @@
 # A股投研统一执行框架 · Unified A-share Research Workflow
 
-一个面向 [WorkBuddy](https://www.workbuddy.cn) 的投研 Skill：把"分析一只股票 / 一个板块 / 做一次行情研究"固定成一条**可复用、可复核、带风控闭环**的 8 阶段流水线。
+一份**纯 Markdown 指令文件**驱动的投研框架：把"分析一只股票 / 一个板块 / 做一次行情研究"固定成一条**可复用、可复核、带风控闭环**的 8 阶段流水线。
+
+原生为 [WorkBuddy](https://www.workbuddy.cn) 的 Skill 设计，但其指令是纯文本、**可移植到任意会读取"指令文件 / 记忆文件"的 Agent**——WorkBuddy、Codex、Claude Code、Cursor、Windsurf、Cline、Roo Code、GitHub Copilot 等，安装方式见下文「跨 Agent 通用」。
 
 🌐 在线预览（GitHub Pages）：https://ChadXie.github.io/a-share-research-framework/
 
@@ -39,24 +41,58 @@ flowchart LR
 
 ---
 
+## 跨 Agent 通用（不止 WorkBuddy）
+
+本框架的本质是一份**纯 Markdown 指令文件**（`SKILL.md`），不依赖 WorkBuddy 专有机制。任何会在会话开始时读取"指令文件 / 记忆文件"的 Agent 都能直接复用——你只需把 `SKILL.md` 的内容放进该 Agent 对应的指令文件中即可。
+
+| Agent | 指令文件位置 | 加载方式 |
+|---|---|---|
+| **WorkBuddy** | `~/.workbuddy/skills/a-share-research-framework/SKILL.md` | 按意图自动加载（推荐） |
+| **Claude Code** | `~/.claude/CLAUDE.md`（全局）或 `./CLAUDE.md`（项目） | 每次会话自动遵循；也可做成 `/research` 斜杠命令 |
+| **Codex（OpenAI）** | 项目根 `codex.md` 或 `AGENTS.md` | 会话内自动遵循 |
+| **Cursor / Windsurf / Cline / Roo Code / GitHub Copilot** | 仓库根 `AGENTS.md`（或各工具对应规则文件） | 会话开始读取，一处写入多处生效 |
+
+> 各 Agent 的指令文件路径可能随版本调整，请以官方文档为准。核心原则不变：**把 `SKILL.md` 的纯文本指令放进该 Agent 的"系统指令 / 记忆文件"**。若工具对 `SKILL.md` 顶部的 YAML frontmatter 敏感，删除 `---` 之间的 frontmatter、仅保留正文即可。
+
+---
+
 ## 安装
 
+### WorkBuddy
 ```bash
-# 方式一：克隆到 WorkBuddy 技能目录
-git clone https://github.com/<你的用户名>/a-share-research-framework.git \
+git clone https://github.com/ChadXie/a-share-research-framework.git \
   ~/.workbuddy/skills/a-share-research-framework
-
-# 方式二：直接把本仓库 SKILL.md 与配套文件复制到
-#   ~/.workbuddy/skills/a-share-research-framework/
 ```
+重启 / 刷新 WorkBuddy 后，当对话出现"分析某只股票""做行情分析""筛选候选池""多空辩论""盯盘风控""复盘规则"等意图时，框架自动加载。（已 fork 本仓库请替换为你自己的用户名。）
 
-重启 / 刷新 WorkBuddy 后，当对话中出现"分析某只股票""做行情分析""筛选候选池""多空辩论""盯盘风控""复盘规则"等意图时，框架会自动加载。
+### Claude Code
+方式 A（全局常驻）：把 `SKILL.md` 内容追加到 `~/.claude/CLAUDE.md`。
+```bash
+cat a-share-research-framework/SKILL.md >> ~/.claude/CLAUDE.md
+```
+方式 B（项目级斜杠命令）：在项目中创建 `.claude/commands/research.md`，首行写 `analyze a stock using the 8-stage research framework: $ARGUMENTS`，下面贴入 `SKILL.md` 正文。之后用 `/research 中际旭创` 触发。
+
+### Codex（OpenAI）
+把 `SKILL.md` 内容写入项目根目录的 `codex.md`（或 `AGENTS.md`）：
+```bash
+cp a-share-research-framework/SKILL.md ./codex.md
+# 若希望同时被其他支持 AGENTS.md 的 Agent 读取，可命名为：
+# cp a-share-research-framework/SKILL.md ./AGENTS.md
+```
+启动 `codex` 后，框架在每次任务中自动遵循。
+
+### Cursor / Windsurf / Cline / Roo Code / GitHub Copilot 等（AGENTS.md 通用约定）
+在仓库根创建 `AGENTS.md`，写入 `SKILL.md` 全文：
+```bash
+cp a-share-research-framework/SKILL.md ./AGENTS.md
+```
+这些工具在编码 / 研究会话开始时读取 `AGENTS.md`，框架即生效——一处写入，所有支持该约定的 Agent 通用。
 
 ---
 
 ## 配套技能（需另行安装）
 
-本框架是"编排层"，具体执行依赖以下 Skill（在 WorkBuddy 技能市场或对应仓库获取）：
+本框架是"编排层"，具体执行依赖以下 Skill（在对应 Agent 的技能市场或对应仓库获取）：
 
 | 阶段 | 角色 | 主用 Skill | 备选 |
 |---|---|---|---|
