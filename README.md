@@ -105,6 +105,17 @@ cp a-share-research-framework/SKILL.md ./AGENTS.md
 
 > 若未安装某些配套 Skill，框架会在对应阶段给出"降级方案"（如直接用 Web 搜索 + 公开数据源替代），不会中断流水线。
 
+### 让陌生人也能用：降级 + 一键安装
+
+本框架**不强依赖**上述配套 Skill。未安装时，框架自动降级为"联网搜索 + 公开数据源 + 推理"路径，流水线不中断，只是数据粒度与自动化程度降低。这让任何拿到本仓库的人**克隆即可跑（降级版）**，再按需补装满血版。
+
+- **完整清单与各 Agent 安装方式** → 见 [`companions.md`](./companions.md)
+- **WorkBuddy 一键安装配套**：
+  ```bash
+  bash install-companions.sh
+  ```
+- **跨平台事实**：配套 Skill 是 WorkBuddy 运行时概念，Codex / Claude Code / Cursor 等无法"安装"它们。在这些环境里，框架以"方法论"运行——用该 Agent 原生的联网搜索、公开数据源与推理跑通 8 阶段；降级路径同样生效。你也可在 `CLAUDE.md` / `AGENTS.md` 中追加"行情数据优先联网检索东方财富/同花顺/公司公告等公开来源"的提示。
+
 ---
 
 ## 示例
