@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{股票名称}} · 投研决策可视化</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --card:#ffffff; --ink:#1f2329; --sub:#6b7280; --line:#e6e8eb;
+    --red:#e24b4a; --green:#1d9e75; --amber:#ba7517; --purple:#534ab7;
+    --redbg:#fcebeb; --greenbg:#eaf3de; --amberbg:#faefda; --purplebg:#eeedfe;
+    --blue:#185fa5;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.65;padding:32px 16px 60px}
+  .wrap{max-width:1080px;margin:0 auto}
+  header{background:linear-gradient(135deg,#1f2329,#3a3f47);color:#fff;border-radius:18px;
+    padding:28px 32px;position:relative;overflow:hidden;animation:fade .6s ease}
+  header::after{content:"";position:absolute;right:-40px;top:-40px;width:220px;height:220px;
+    background:radial-gradient(circle,rgba(226,75,74,.35),transparent 70%);border-radius:50%}
+  header h1{font-size:26px;font-weight:600;letter-spacing:.5px}
+  header .code{font-size:14px;opacity:.75;margin-top:4px}
+  .price-row{display:flex;flex-wrap:wrap;gap:24px;margin-top:18px;position:relative;z-index:1}
+  .price-row .item .v{font-size:22px;font-weight:600}
+  .price-row .item .l{font-size:12px;opacity:.7}
+  .up{color:#ff9b8a}
+  .down{color:#9fe0c0}
+  .verdict{display:inline-block;margin-top:16px;background:rgba(226,75,74,.18);
+    border:1px solid rgba(226,75,74,.5);color:#ffd9d4;padding:8px 16px;border-radius:30px;
+    font-size:14px;font-weight:500;position:relative;z-index:1}
+  section{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:24px 26px;margin-top:22px;animation:fade .6s ease both}
+  section h2{font-size:18px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:10px}
+  section h2 .tag{font-size:11px;font-weight:500;color:var(--sub);background:var(--bg);
+    border:1px solid var(--line);padding:2px 9px;border-radius:20px}
+  section .desc{font-size:13px;color:var(--sub);margin-bottom:16px}
+
+  .pipe{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+  .step{flex:1 1 110px;background:var(--bg);border:1px solid var(--line);border-radius:12px;
+    padding:12px 10px;text-align:center;position:relative;transition:.25s}
+  .step:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(0,0,0,.06)}
+  .step .n{font-size:12px;color:var(--blue);font-weight:600}
+  .step .t{font-size:13px;font-weight:500;margin-top:3px}
+  .step .r{font-size:11px;color:var(--sub);margin-top:2px}
+  .step .dot{width:8px;height:8px;border-radius:50%;background:var(--green);margin:6px auto 0}
+
+  .grid{display:grid;gap:14px}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .dcard{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--bg)}
+  .dcard .h{font-size:12px;color:var(--sub);margin-bottom:8px}
+  .dcard .big{font-size:20px;font-weight:600}
+  .dcard .sm{font-size:12px;color:var(--sub);margin-top:4px}
+
+  .chartbox{display:grid;grid-template-columns:1.2fr 1fr;gap:20px;align-items:center}
+  .bars{width:100%}
+  .kv{font-size:13px;color:var(--sub);margin:6px 0}
+  .kv b{color:var(--ink);font-weight:600}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--sub);font-weight:500;font-size:12px;background:var(--bg)}
+  .st{padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+  .st.done{background:var(--greenbg);color:var(--green)}
+  .st.doing{background:var(--amberbg);color:var(--amber)}
+  .st.wait{background:var(--purplebg);color:var(--purple)}
+  .st.deny{background:#eef0f2;color:#5f5e5a}
+
+  .chain{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+  .chain .seg{flex:1 1 200px;border-radius:12px;padding:14px 16px;border:1px solid var(--line)}
+  .seg.up{background:#f0f5ff;border-color:#cfe0ff}
+  .seg.mid{background:var(--redbg);border-color:#f3c1c1}
+  .seg.down{background:#f0faf4;border-color:#c8e9d4}
+  .seg .ttl{font-size:13px;font-weight:600;margin-bottom:8px}
+  .seg .it{font-size:12px;color:var(--sub);margin:3px 0}
+  .seg .it b{color:var(--ink)}
+  .arrow{display:flex;align-items:center;justify-content:center;color:#bbb;font-size:20px;padding:0 6px}
+
+  .quad{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .q{border-radius:14px;padding:16px 18px;transition:.25s}
+  .q:hover{transform:scale(1.01);box-shadow:0 8px 22px rgba(0,0,0,.07)}
+  .q.green{background:var(--greenbg);border:1px solid #97c459}
+  .q.red{background:var(--redbg);border:1px solid #f09595}
+  .q.amber{background:var(--amberbg);border:1px solid #ef9f27}
+  .q.purple{background:var(--purplebg);border:1px solid #afa9ec}
+  .q h3{font-size:15px;font-weight:600;margin-bottom:8px}
+  .q ul{list-style:none;font-size:13px}
+  .q li{padding:4px 0 4px 16px;position:relative;color:#333}
+  .q li::before{content:"";position:absolute;left:0;top:11px;width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.5}
+
+  .vbig{font-size:20px;font-weight:600;color:var(--red);margin-bottom:10px}
+  .advice{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  .advice .box{border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .advice .box h4{font-size:13px;margin-bottom:6px}
+  .advice .box p{font-size:13px;color:var(--sub)}
+
+  .fail{background:var(--purplebg);border:1px solid #afa9ec;border-radius:12px;padding:14px 16px;font-size:13px;margin-top:6px}
+  .fail b{color:var(--purple)}
+
+  footer{margin-top:26px;text-align:center;font-size:12px;color:var(--sub);line-height:1.8}
+  footer .badge{display:inline-block;background:var(--bg);border:1px solid var(--line);
+    padding:6px 14px;border-radius:20px;margin-top:8px}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @media(max-width:720px){.g4,.g2,.chartbox,.quad,.advice{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== 顶部：把 {{...}} 替换为实际数据 ===== -->
+  <header>
+    <h1>{{股票名称}} · 投研决策可视化</h1>
+    <div class="code">{{股票代码}} ｜ {{行业/细分}} ｜ 分析日期 {{分析日期}} 收盘</div>
+    <div class="price-row">
+      <div class="item"><div class="v up">{{收盘价}}</div><div class="l">收盘价 · 当日 {{涨跌幅}}</div></div>
+      <div class="item"><div class="v">{{总市值}}</div><div class="l">{{市值说明}}</div></div>
+      <div class="item"><div class="v">{{当日成交额}}</div><div class="l">{{成交额说明}}</div></div>
+      <div class="item"><div class="v">{{近周区间}}</div><div class="l">{{区间说明}}</div></div>
+    </div>
+    <div class="verdict">结论：{{一句话结论，如：中长期看多 · 短线不追高}}</div>
+  </header>
+
+  <!-- 1 框架流水线（通常无需改） -->
+  <section>
+    <h2>8 阶段投研流水线 <span class="tag">统一执行框架</span></h2>
+    <div class="desc">本次分析严格按框架串联：数据筛选 → 催化验证 → 产业链 → UZI委员会 → 最终判断 → 跟踪 → 复盘。</div>
+    <div class="pipe">
+      <div class="step"><div class="n">阶段1-2</div><div class="t">数据筛选</div><div class="r">数据员</div><div class="dot"></div></div>
+      <div class="step"><div class="n">阶段3</div><div class="t">催化验证</div><div class="r">情报员</div><div class="dot"></div></div>
+      <div class="step"><div class="n">阶段4</div><div class="t">产业链研究</div><div class="r">行业研究员</div><div class="dot"></div></div>
+      <div class="step"><div class="n">阶段5</div><div class="t">UZI委员会</div><div class="r">多空/争议/失效</div><div class="dot"></div></div>
+      <div class="step"><div class="n">阶段6</div><div class="t">最终判断</div><div class="r">本人裁决</div><div class="dot"></div></div>
+      <div class="step"><div class="n">阶段7</div><div class="t">持续跟踪</div><div class="r">盯盘风控员</div><div class="dot"></div></div>
+      <div class="step"><div class="n">阶段8</div><div class="t">复盘修正</div><div class="r">规则闭环</div><div class="dot"></div></div>
+    </div>
+  </section>
+
+  <!-- 2 一页数据卡（8 张，按需替换标题/数值/小字） -->
+  <section>
+    <h2>一页数据卡 <span class="tag">阶段1-2 · 数据员</span></h2>
+    <div class="grid g4">
+      <div class="dcard"><div class="h">{{数据卡1_标题}}</div><div class="big">{{数据卡1_大值}}</div><div class="sm">{{数据卡1_小字}}</div></div>
+      <div class="dcard"><div class="h">{{数据卡2_标题}}</div><div class="big">{{数据卡2_大值}}</div><div class="sm">{{数据卡2_小字}}</div></div>
+      <div class="dcard"><div class="h">{{数据卡3_标题}}</div><div class="big">{{数据卡3_大值}}</div><div class="sm">{{数据卡3_小字}}</div></div>
+      <div class="dcard"><div class="h">{{数据卡4_标题}}</div><div class="big">{{数据卡4_大值}}</div><div class="sm">{{数据卡4_小字}}</div></div>
+    </div>
+    <div class="grid g4" style="margin-top:14px">
+      <div class="dcard"><div class="h">{{数据卡5_标题}}</div><div class="big">{{数据卡5_大值}}</div><div class="sm">{{数据卡5_小字}}</div></div>
+      <div class="dcard"><div class="h">{{数据卡6_标题}}</div><div class="big">{{数据卡6_大值}}</div><div class="sm">{{数据卡6_小字}}</div></div>
+      <div class="dcard"><div class="h">{{数据卡7_标题}}</div><div class="big">{{数据卡7_大值}}</div><div class="sm">{{数据卡7_小字}}</div></div>
+      <div class="dcard"><div class="h">{{数据卡8_标题}}</div><div class="big" style="color:var(--red)">{{数据卡8_大值}}</div><div class="sm">{{数据卡8_小字}}</div></div>
+    </div>
+  </section>
+
+  <!-- 3 业绩增长图（改 data-chart 里的年份与数值即可，柱子自动缩放） -->
+  <section>
+    <h2>业绩增长与估值 <span class="tag">事实 / 估算</span></h2>
+    <div class="chartbox">
+      <div class="bars" id="growthChart" data-chart='[{"y":"2022","v":12.2},{"y":"2023","v":21.7},{"y":"2024","v":51.7},{"y":"2025","v":108},{"y":"2026E","v":220}]'></div>
+      <div>
+        <div class="kv"><b>增长引擎：</b>{{增长引擎一句话}}</div>
+        <div class="kv"><b>盈利质量：</b>{{盈利质量一句话}}</div>
+        <div class="kv"><b>估值锚：</b>{{估值锚一句话}}</div>
+        <div class="kv"><b>关键判断：</b>{{关键判断一句话}}</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 催化验证表（按需增删行；状态见底部图例） -->
+  <section>
+    <h2>催化验证表 <span class="tag">阶段3 · 情报员</span></h2>
+    <div class="desc">区分「已定价 / 正在定价 / 未定价」，剔除证伪项。</div>
+    <table>
+      <thead><tr><th>催化事件</th><th>状态</th><th>定价状态</th></tr></thead>
+      <tbody>
+        <tr><td>{{催化1_事件}}</td><td class="st done">已落地</td><td><span class="st doing">正在定价</span></td></tr>
+        <tr><td>{{催化2_事件}}</td><td class="st done">已兑现</td><td><span class="st done">已大幅定价</span></td></tr>
+        <tr><td>{{催化3_事件}}</td><td class="st wait">待开</td><td><span class="st wait">未定价</span></td></tr>
+        <tr><td>{{催化4_事件}}</td><td class="st deny">证伪/否认</td><td><span class="st deny">扰动·证伪中</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 5 产业链地图（三段：上游/中游核心/下游） -->
+  <section>
+    <h2>{{产业链名称}}地图 <span class="tag">阶段4 · 行业研究员</span></h2>
+    <div class="chain">
+      <div class="seg up">
+        <div class="ttl">上游 · {{上游环节名}}</div>
+        <div class="it">{{上游要点1}}</div>
+        <div class="it">{{上游要点2}}</div>
+        <div class="it" style="color:var(--amber)">{{上游瓶颈}}</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="seg mid">
+        <div class="ttl">中游 · {{中游环节名}}（核心）</div>
+        <div class="it"><b>{{标的}}</b>：{{中游地位}}</div>
+        <div class="it">{{中游份额}}</div>
+        <div class="it">{{中游壁垒}}</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="seg down">
+        <div class="ttl">下游 · {{下游环节名}}</div>
+        <div class="it">{{下游客户1}}</div>
+        <div class="it">{{下游客户2}}</div>
+        <div class="it" style="color:var(--red)">{{下游命门}}</div>
+      </div>
+    </div>
+    <div class="kv" style="margin-top:12px"><b>景气评级：</b>{{景气评级}}。<b>壁垒：</b>{{壁垒评级}}——{{壁垒说明}}。</div>
+  </section>
+
+  <!-- 6 UZI 四要素（强制产出） -->
+  <section>
+    <h2>UZI 多视角投资委员会 <span class="tag">阶段5 · 四要素</span></h2>
+    <div class="desc">强制产出：多头 / 反方 / 争议 / 失效。</div>
+    <div class="quad">
+      <div class="q green">
+        <h3 style="color:var(--green)">🟢 Bull 多头逻辑</h3>
+        <ul>
+          <li>{{多头1}}</li>
+          <li>{{多头2}}</li>
+          <li>{{多头3}}</li>
+        </ul>
+      </div>
+      <div class="q red">
+        <h3 style="color:var(--red)">🔴 Bear 反方观点</h3>
+        <ul>
+          <li>{{反方1}}</li>
+          <li>{{反方2}}</li>
+          <li>{{反方3}}</li>
+        </ul>
+      </div>
+      <div class="q amber">
+        <h3 style="color:var(--amber)">🟡 争议变量</h3>
+        <ul>
+          <li>{{争议1}}</li>
+          <li>{{争议2}}</li>
+        </ul>
+      </div>
+      <div class="q purple">
+        <h3 style="color:var(--purple)">⚫ 失效条件（可观测）</h3>
+        <ul>
+          <li>{{失效1}}</li>
+          <li>{{失效2}}</li>
+          <li>{{失效3}}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 最终判断（human-in-the-loop） -->
+  <section>
+    <h2>本人最终判断 <span class="tag">阶段6 · human-in-the-loop</span></h2>
+    <div class="vbig">结论：{{最终结论，如：中长期看多 · 短线谨慎}}</div>
+    <p style="font-size:14px;color:#333">{{判断正文：为什么是这个结论，风险收益比如何}}</p>
+    <div class="advice">
+      <div class="box">
+        <h4 style="color:var(--green)">配置型</h4>
+        <p>{{配置型建议}}</p>
+      </div>
+      <div class="box">
+        <h4 style="color:var(--amber)">交易型</h4>
+        <p>{{交易型建议}}</p>
+      </div>
+    </div>
+    <div class="fail" style="margin-top:14px">
+      <b>风险收益比：</b>{{风险收益比一句话}}<br>
+      <b>观察区（1–2 周）：</b>{{近期观察窗口与催化事件}}
+    </div>
+  </section>
+
+  <!-- 8 持续跟踪与风控预警 -->
+  <section>
+    <h2>持续跟踪与风控预警 <span class="tag">阶段7 · 盯盘风控员</span></h2>
+    <div class="grid g2">
+      <div class="dcard">
+        <div class="h">价格 / 技术预警</div>
+        <p style="font-size:13px;color:#333">· 跌破 <b>{{价预警1_价位}}</b> → {{价预警1_动作}}<br>· 站稳 <b>{{价预警2_价位}}</b> → {{价预警2_动作}}<br>· {{价预警3}}</p>
+      </div>
+      <div class="dcard">
+        <div class="h">基本面预警（事件驱动）</div>
+        <p style="font-size:13px;color:#333">· {{基预警1}}<br>· {{基预警2}}</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>本报告基于公开信息与研究框架整理，仅供研究参考，<b>不构成任何投资建议或收益承诺</b>。股市有风险，投资须谨慎。</div>
+    <div class="badge">研究观点，非投资建议 ｜ 最终投资决策由使用者本人独立判断</div>
+  </footer>
+
+</div>
+
+<script>
+// 业绩增长柱状图：自动按 data-chart 内数值缩放，无需手写坐标
+(function(){
+  var el=document.getElementById('growthChart');
+  if(!el)return;
+  try{
+    var d=JSON.parse(el.getAttribute('data-chart'));
+    var max=Math.max.apply(null,d.map(function(x){return x.v;}));
+    var W=600,H=260,pad=40,base=220;
+    var svgns="http://www.w3.org/2000/svg";
+    var svg=document.createElementNS(svgns,"svg");
+    svg.setAttribute("viewBox","0 0 "+W+" "+H);
+    svg.setAttribute("width","100%");
+    var line=document.createElementNS(svgns,"line");
+    line.setAttribute("x1",pad);line.setAttribute("y1",base);line.setAttribute("x2",W-20);line.setAttribute("y2",base);
+    line.setAttribute("stroke","#e6e8eb");svg.appendChild(line);
+    var n=d.length, bw=56, gap=(W-20-pad-n*bw)/(n-1);
+    d.forEach(function(x,i){
+      var h=Math.max(8,(x.v/max)*(base-30));
+      var rx=pad+i*(bw+gap);
+      var rect=document.createElementNS(svgns,"rect");
+      rect.setAttribute("x",rx);rect.setAttribute("y",base-h);rect.setAttribute("width",bw);rect.setAttribute("height",h);
+      rect.setAttribute("rx",4);rect.setAttribute("fill", i===n-1?"#185fa5":"#4f93cf");
+      svg.appendChild(rect);
+      var t=document.createElementNS(svgns,"text");
+      t.setAttribute("x",rx+bw/2);t.setAttribute("y",base+18);t.setAttribute("text-anchor","middle");t.setAttribute("font-size",12);t.setAttribute("fill","#6b7280");
+      t.textContent=x.y;svg.appendChild(t);
+      var v=document.createElementNS(svgns,"text");
+      v.setAttribute("x",rx+bw/2);v.setAttribute("y",base-h-6);v.setAttribute("text-anchor","middle");v.setAttribute("font-size",11);
+      v.setAttribute("fill", i===n-1?"#185fa5":"#555");v.setAttribute("font-weight", i===n-1?600:400);
+      v.textContent=x.v;svg.appendChild(v);
+    });
+    el.appendChild(svg);
+  }catch(e){}
+})();
+</script>
+</body>
+</html>
