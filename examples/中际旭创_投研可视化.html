@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中际旭创(300308) · 投研决策可视化</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --card:#ffffff; --ink:#1f2329; --sub:#6b7280; --line:#e6e8eb;
+    --red:#e24b4a; --green:#1d9e75; --amber:#ba7517; --purple:#534ab7;
+    --redbg:#fcebeb; --greenbg:#eaf3de; --amberbg:#faefda; --purplebg:#eeedfe;
+    --blue:#185fa5;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.65;padding:32px 16px 60px}
+  .wrap{max-width:1080px;margin:0 auto}
+  header{background:linear-gradient(135deg,#1f2329,#3a3f47);color:#fff;border-radius:18px;
+    padding:28px 32px;position:relative;overflow:hidden;animation:fade .6s ease}
+  header::after{content:"";position:absolute;right:-40px;top:-40px;width:220px;height:220px;
+    background:radial-gradient(circle,rgba(226,75,74,.35),transparent 70%);border-radius:50%}
+  header h1{font-size:26px;font-weight:600;letter-spacing:.5px}
+  header .code{font-size:14px;opacity:.75;margin-top:4px}
+  .price-row{display:flex;flex-wrap:wrap;gap:24px;margin-top:18px;position:relative;z-index:1}
+  .price-row .item .v{font-size:22px;font-weight:600}
+  .price-row .item .l{font-size:12px;opacity:.7}
+  .up{color:#ff9b8a}
+  .verdict{display:inline-block;margin-top:16px;background:rgba(226,75,74,.18);
+    border:1px solid rgba(226,75,74,.5);color:#ffd9d4;padding:8px 16px;border-radius:30px;
+    font-size:14px;font-weight:500;position:relative;z-index:1}
+  section{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:24px 26px;margin-top:22px;animation:fade .6s ease both}
+  section h2{font-size:18px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:10px}
+  section h2 .tag{font-size:11px;font-weight:500;color:var(--sub);background:var(--bg);
+    border:1px solid var(--line);padding:2px 9px;border-radius:20px}
+  section .desc{font-size:13px;color:var(--sub);margin-bottom:16px}
+
+  /* 1. pipeline stepper */
+  .pipe{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+  .step{flex:1 1 110px;background:var(--bg);border:1px solid var(--line);border-radius:12px;
+    padding:12px 10px;text-align:center;position:relative;transition:.25s}
+  .step:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(0,0,0,.06)}
+  .step .n{font-size:12px;color:var(--blue);font-weight:600}
+  .step .t{font-size:13px;font-weight:500;margin-top:3px}
+  .step .r{font-size:11px;color:var(--sub);margin-top:2px}
+  .step .dot{width:8px;height:8px;border-radius:50%;background:var(--green);margin:6px auto 0}
+
+  /* 2. data cards */
+  .grid{display:grid;gap:14px}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .dcard{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--bg)}
+  .dcard .h{font-size:12px;color:var(--sub);margin-bottom:8px}
+  .dcard .big{font-size:20px;font-weight:600}
+  .dcard .sm{font-size:12px;color:var(--sub);margin-top:4px}
+  .pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:20px;font-weight:500}
+
+  /* chart */
+  .chartbox{display:grid;grid-template-columns:1.2fr 1fr;gap:20px;align-items:center}
+  .kv{font-size:13px;color:var(--sub);margin:6px 0}
+  .kv b{color:var(--ink);font-weight:600}
+
+  /* catalyst table */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--sub);font-weight:500;font-size:12px;background:var(--bg)}
+  .st{padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+  .st.done{background:var(--greenbg);color:var(--green)}
+  .st.doing{background:var(--amberbg);color:var(--amber)}
+  .st.wait{background:var(--purplebg);color:var(--purple)}
+  .st.deny{background:#eef0f2;color:#5f5e5a}
+
+  /* industry chain */
+  .chain{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+  .chain .seg{flex:1 1 200px;border-radius:12px;padding:14px 16px;border:1px solid var(--line)}
+  .seg.up{background:#f0f5ff;border-color:#cfe0ff}
+  .seg.mid{background:var(--redbg);border-color:#f3c1c1}
+  .seg.down{background:#f0faf4;border-color:#c8e9d4}
+  .seg .ttl{font-size:13px;font-weight:600;margin-bottom:8px}
+  .seg .it{font-size:12px;color:var(--sub);margin:3px 0}
+  .seg .it b{color:var(--ink)}
+  .arrow{display:flex;align-items:center;justify-content:center;color:#bbb;font-size:20px;padding:0 6px}
+
+  /* UZI quadrant */
+  .quad{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .q{border-radius:14px;padding:16px 18px;transition:.25s}
+  .q:hover{transform:scale(1.01);box-shadow:0 8px 22px rgba(0,0,0,.07)}
+  .q.green{background:var(--greenbg);border:1px solid #97c459}
+  .q.red{background:var(--redbg);border:1px solid #f09595}
+  .q.amber{background:var(--amberbg);border:1px solid #ef9f27}
+  .q.purple{background:var(--purplebg);border:1px solid #afa9ec}
+  .q h3{font-size:15px;font-weight:600;margin-bottom:8px}
+  .q ul{list-style:none;font-size:13px}
+  .q li{padding:4px 0 4px 16px;position:relative;color:#333}
+  .q li::before{content:"";position:absolute;left:0;top:11px;width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.5}
+
+  /* verdict block */
+  .vbig{font-size:20px;font-weight:600;color:var(--red);margin-bottom:10px}
+  .advice{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  .advice .box{border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .advice .box h4{font-size:13px;margin-bottom:6px}
+  .advice .box p{font-size:13px;color:var(--sub)}
+
+  .fail{background:var(--purplebg);border:1px solid #afa9ec;border-radius:12px;padding:14px 16px;font-size:13px;margin-top:6px}
+  .fail b{color:var(--purple)}
+
+  footer{margin-top:26px;text-align:center;font-size:12px;color:var(--sub);line-height:1.8}
+  footer .badge{display:inline-block;background:var(--bg);border:1px solid var(--line);
+    padding:6px 14px;border-radius:20px;margin-top:8px}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @media(max-width:720px){.g4,.g2,.chartbox,.quad,.advice{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>中际旭创 · 投研决策可视化</h1>
+    <div class="code">300308.SZ ｜ 通信设备 / 高速光模块 ｜ 分析日期 2026-08-11 收盘</div>
+    <div class="price-row">
+      <div class="item"><div class="v up">886.96 元</div><div class="l">收盘价 · 当日 +2.59%</div></div>
+      <div class="item"><div class="v">≈1.04 万亿</div><div class="l">总市值（全A科技龙头）</div></div>
+      <div class="item"><div class="v">299.6 亿</div><div class="l">当日成交额（全A第一）</div></div>
+      <div class="item"><div class="v">835 ~ 1033</div><div class="l">近周区间（8/10~8/4）</div></div>
+    </div>
+    <div class="verdict">结论：中长期看多 · 短线不追高（高拥挤 / 高波动 / 高估值）</div>
+  </header>
+
+  <!-- 1 框架 -->
+  <section>
+    <h2>8 阶段投研流水线 <span class="tag">统一执行框架</span></h2>
+    <div class="desc">本次分析严格按框架串联：数据筛选 → 催化验证 → 产业链 → UZI委员会 → 最终判断 → 跟踪 → 复盘。</div>
+    <div class="pipe">
+      <div class="step"><div class="n">阶段1-2</div><div class="t">数据筛选</div><div class="r">数据员</div><div class="dot"></div></div>
+      <div class="step"><div class="n">阶段3</div><div class="t">催化验证</div><div class="r">情报员</div><div class="dot"></div></div>
+      <div class="step"><div class="n">阶段4</div><div class="t">产业链研究</div><div class="r">行业研究员</div><div class="dot"></div></div>
+      <div class="step"><div class="n">阶段5</div><div class="t">UZI委员会</div><div class="r">多空/争议/失效</div><div class="dot"></div></div>
+      <div class="step"><div class="n">阶段6</div><div class="t">最终判断</div><div class="r">本人裁决</div><div class="dot"></div></div>
+      <div class="step"><div class="n">阶段7</div><div class="t">持续跟踪</div><div class="r">盯盘风控员</div><div class="dot"></div></div>
+      <div class="step"><div class="n">阶段8</div><div class="t">复盘修正</div><div class="r">规则闭环</div><div class="dot"></div></div>
+    </div>
+  </section>
+
+  <!-- 2 数据卡 -->
+  <section>
+    <h2>一页数据卡 <span class="tag">阶段1-2 · 数据员</span></h2>
+    <div class="grid g4">
+      <div class="dcard"><div class="h">行情</div><div class="big up">+2.59%</div><div class="sm">收 886.96 · 振幅 23%</div></div>
+      <div class="dcard"><div class="h">2026Q1 营收</div><div class="big">194.96 亿</div><div class="sm">同比 +192%</div></div>
+      <div class="dcard"><div class="h">2026Q1 净利</div><div class="big">57.35 亿</div><div class="sm">同比 +262% · ROE 17.5%</div></div>
+      <div class="dcard"><div class="h">综合毛利率</div><div class="big">≈32.5%</div><div class="sm">高端产品约 38%</div></div>
+    </div>
+    <div class="grid g4" style="margin-top:14px">
+      <div class="dcard"><div class="h">PE(2025)</div><div class="big">≈96x</div><div class="sm">绝对估值不低</div></div>
+      <div class="dcard"><div class="h">PE(2026E)</div><div class="big">≈47x</div><div class="sm">净利约 220 亿 +104%</div></div>
+      <div class="dcard"><div class="h">PEG(2026E)</div><div class="big">≈0.45</div><div class="sm">看似便宜 · 需看持续性</div></div>
+      <div class="dcard"><div class="h">拥挤度</div><div class="big" style="color:var(--red)">高</div><div class="sm">成交常居全A前十</div></div>
+    </div>
+  </section>
+
+  <!-- 财务增长 + 估值 -->
+  <section>
+    <h2>业绩增长与估值 <span class="tag">事实 / 估算</span></h2>
+    <div class="chartbox">
+      <div>
+        <svg viewBox="0 0 600 260" width="100%">
+          <line x1="40" y1="220" x2="580" y2="220" stroke="#e6e8eb" stroke-width="1"/>
+          <!-- bars: 12.24,21.74,51.71,107.97,219.84 -->
+          <rect x="56"  y="190" width="56" height="30"  rx="4" fill="#9fc7e8"/>
+          <rect x="176" y="183" width="56" height="37"  rx="4" fill="#7fb0dd"/>
+          <rect x="296" y="158" width="56" height="62"  rx="4" fill="#4f93cf"/>
+          <rect x="416" y="112" width="56" height="108" rx="4" fill="#2f78b8"/>
+          <rect x="536" y="20"  width="56" height="200" rx="4" fill="#185fa5"/>
+          <text x="84"  y="238" text-anchor="middle" font-size="12" fill="#6b7280">2022</text>
+          <text x="204" y="238" text-anchor="middle" font-size="12" fill="#6b7280">2023</text>
+          <text x="324" y="238" text-anchor="middle" font-size="12" fill="#6b7280">2024</text>
+          <text x="444" y="238" text-anchor="middle" font-size="12" fill="#6b7280">2025</text>
+          <text x="564" y="238" text-anchor="middle" font-size="12" fill="#185fa5" font-weight="600">2026E</text>
+          <text x="84"  y="182" text-anchor="middle" font-size="11" fill="#555">12.2</text>
+          <text x="204" y="175" text-anchor="middle" font-size="11" fill="#555">21.7</text>
+          <text x="324" y="150" text-anchor="middle" font-size="11" fill="#555">51.7</text>
+          <text x="444" y="104" text-anchor="middle" font-size="11" fill="#fff" font-weight="600">108</text>
+          <text x="564" y="12"  text-anchor="middle" font-size="12" fill="#185fa5" font-weight="600">220</text>
+          <text x="310" y="256" text-anchor="middle" font-size="12" fill="#9aa0a6">归母净利润（亿元）· 2022→2026E 增长约 18 倍</text>
+        </svg>
+      </div>
+      <div>
+        <div class="kv"><b>增长引擎：</b>800G 满产 + 1.6T 批量交付，订单排至 2027。</div>
+        <div class="kv"><b>盈利质量：</b>高端（1.6T/硅光）占比提升，毛利率稳于 32%+。</div>
+        <div class="kv"><b>估值锚：</b>PE(2025)≈96x，但 PE(2026E)≈47x 已部分消化高增。</div>
+        <div class="kv"><b>关键判断：</b>PEG≈0.45 不意味安全，需叠加 <b>AI 资本开支可持续性</b> 一起看。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 催化 -->
+  <section>
+    <h2>催化验证表 <span class="tag">阶段3 · 情报员</span></h2>
+    <div class="desc">区分「已定价 / 正在定价 / 未定价」，剔除证伪项。</div>
+    <table>
+      <thead><tr><th>催化事件</th><th>状态</th><th>定价状态</th></tr></thead>
+      <tbody>
+        <tr><td>英伟达联合巨头设 5000 亿美元算力融资平台</td><td class="st done">已落地</td><td><span class="st doing">正在定价</span></td></tr>
+        <tr><td>800G 满产 / 1.6T 批量交付，订单排至 2027</td><td class="st done">已兑现</td><td><span class="st done">已大幅定价</span></td></tr>
+        <tr><td>港股上市募 550 亿港元，35% 投 1.6T/CPO 研发</td><td class="st done">已兑现</td><td><span class="st done">已定价</span></td></tr>
+        <tr><td>阿里云 AIDC 工期缩至 100 天、产能翻倍</td><td class="st done">已落地</td><td><span class="st doing">部分定价</span></td></tr>
+        <tr><td>8/12 董事会会议（中报/事项）</td><td class="st wait">待开</td><td><span class="st wait">未定价</span></td></tr>
+        <tr><td>流言：CSP 直采 Lumentum / 2027 大幅降价</td><td class="st deny">公司否认</td><td><span class="st deny">扰动·证伪中</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 4 产业链 -->
+  <section>
+    <h2>CPO / 光模块产业链地图 <span class="tag">阶段4 · 行业研究员</span></h2>
+    <div class="chain">
+      <div class="seg up">
+        <div class="ttl">上游 · 芯片与器件</div>
+        <div class="it">200G EML 光芯片：<b>海外垄断</b>（博通/Lumentum）</div>
+        <div class="it">精密光学件 / FAU：天孚通信等</div>
+        <div class="it" style="color:var(--amber)">瓶颈：芯片配额锁定，二线难拿</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="seg mid">
+        <div class="ttl">中游 · 光模块整机（核心）</div>
+        <div class="it"><b>中际旭创</b>：全球第一</div>
+        <div class="it">800G 份额 40–55% · 1.6T >50%</div>
+        <div class="it">英伟达 1.6T 份额 <b>约 80%</b></div>
+        <div class="it">硅光占高速收入 ≈70%</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="seg down">
+        <div class="ttl">下游 · 云厂商 / AI 芯片</div>
+        <div class="it">微软/谷歌/Meta/亚马逊</div>
+        <div class="it">英伟达 GB200/Rubin</div>
+        <div class="it" style="color:var(--red)">命门：资本开支持续性</div>
+      </div>
+    </div>
+    <div class="kv" style="margin-top:12px"><b>景气评级：极高</b>（1.6T 有效产能缺口约 40%）。<b>壁垒：高（高端）</b>—— 客户认证 6–12 月、头部良率 90%+，非光伏式内卷。</div>
+  </section>
+
+  <!-- 5 UZI -->
+  <section>
+    <h2>UZI 多视角投资委员会 <span class="tag">阶段5 · 四要素</span></h2>
+    <div class="desc">强制产出：多头 / 反方 / 争议 / 失效。</div>
+    <div class="quad">
+      <div class="q green">
+        <h3 style="color:var(--green)">🟢 Bull 多头逻辑</h3>
+        <ul>
+          <li>业绩最硬：2026E 净利约 220 亿（+104%）</li>
+          <li>英伟达 1.6T 份额 80%，壁垒真实</li>
+          <li>1.6T 缺口 40%，订单排至 2027</li>
+          <li>PEG≈0.45，港股募资扩产 3.2 倍</li>
+        </ul>
+      </div>
+      <div class="q red">
+        <h3 style="color:var(--red)">🔴 Bear 反方观点</h3>
+        <ul>
+          <li>估值高：PE(2025)≈96x，较 6 月 -37%</li>
+          <li>AI capex 见顶：谷歌/亚马逊 FCF 转负</li>
+          <li>客户集中：前五大 81.9%，美国 61.7%</li>
+          <li>存货 +53% 至 194 亿，8/10 天量踩踏</li>
+        </ul>
+      </div>
+      <div class="q amber">
+        <h3 style="color:var(--amber)">🟡 争议变量</h3>
+        <ul>
+          <li>2027 年 1.6T 价格/需求指引未证实</li>
+          <li>capex 节奏：指引上修但 FCF 恶化</li>
+          <li>高端产能缺口能否持续成疑</li>
+          <li>毛利率能否守住 32%+</li>
+        </ul>
+      </div>
+      <div class="q purple">
+        <h3 style="color:var(--purple)">⚫ 失效条件（可观测）</h3>
+        <ul>
+          <li>大客户下修 2027 capex 指引</li>
+          <li>中报毛利率破 28% 或订单覆盖跌破</li>
+          <li>存货大额减值 / 周转恶化</li>
+          <li>放量跌破 800 元关键支撑</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 最终判断 -->
+  <section>
+    <h2>本人最终判断 <span class="tag">阶段6 · human-in-the-loop</span></h2>
+    <div class="vbig">结论：中长期看多 · 短线谨慎（中性偏多，不追高）</div>
+    <p style="font-size:14px;color:#333">中际旭创是 AI 算力链中<b>业绩兑现确定性最高、壁垒最真实</b>的龙头之一，中线配置价值明确；但当前三高（高拥挤/高波动/高估值）状态未解，<b>不建议在情绪高位追涨</b>。</p>
+    <div class="advice">
+      <div class="box">
+        <h4 style="color:var(--green)">配置型</h4>
+        <p>逢显著回踩（800–830 缩量企稳）分批布局，仓位控上限，不一次打满。</p>
+      </div>
+      <div class="box">
+        <h4 style="color:var(--amber)">交易型</h4>
+        <p>当前处 835–1033 震荡中位，不追；等 8/12 事项落地 + 方向选择。放量站稳 900 为修复确认。</p>
+      </div>
+    </div>
+    <div class="fail" style="margin-top:14px">
+      <b>风险收益比：</b>中线向上空间对向下空间不对称偏正，但赔率依赖「AI capex 不塌」前提；一旦动摇，高估值会被放大。
+      <br><b>观察区（1–2 周）：</b>8/12 董事会事项 · 半年报披露（净利/毛利率/存货/订单）· 英伟达与云厂商 capex 表态。
+    </div>
+  </section>
+
+  <!-- 7 跟踪 -->
+  <section>
+    <h2>持续跟踪与风控预警 <span class="tag">阶段7 · 盯盘风控员</span></h2>
+    <div class="grid g2">
+      <div class="dcard">
+        <div class="h">价格 / 技术预警</div>
+        <p style="font-size:13px;color:#333">· 跌破 <b>800 元</b>（放量）→ 复核失效条件⑤<br>· 站稳 <b>900 元</b>温和放量 → 短线修复确认<br>· 单日成交 &gt;400 亿且跌 &gt;5% → 拥挤踩踏预警</p>
+      </div>
+      <div class="dcard">
+        <div class="h">基本面预警（事件驱动）</div>
+        <p style="font-size:13px;color:#333">· 大客户 capex 下修 / 中报毛利 &lt;28% / 存货减值 → 立即复核<br>· 8/12 董事会、半年报披露 → 催化窗口</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>本报告基于公开信息与研究框架整理，仅供研究参考，<b>不构成任何投资建议或收益承诺</b>。股市有风险，投资须谨慎。</div>
+    <div class="badge">研究观点，非投资建议 ｜ 最终投资决策由使用者本人独立判断</div>
+  </footer>
+
+</div>
+</body>
+</html>
