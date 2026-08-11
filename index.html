@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>A股投研统一执行框架 · WorkBuddy Skill</title>
+<title>A股投研统一执行框架 · 可移植投研 Skill（WorkBuddy / Codex / Claude Code）</title>
 <style>
   :root{
     --bg:#0f1216; --panel:#171b22; --panel2:#1e232c; --line:#2a313c;
@@ -96,13 +96,14 @@
 <div class="hero">
   <div class="wrap">
     <div class="tag">
-      <span class="pill">🧩 WorkBuddy Skill</span>
+      <span class="pill">🧩 可移植投研 Skill</span>
+      <span class="pill">🌐 跨 Agent 通用</span>
       <span class="pill">📊 8 阶段流水线</span>
       <span class="pill">🔁 风控闭环</span>
       <span class="pill">⚖️ MIT License</span>
     </div>
     <h1>A股投研<span class="hl">统一执行框架</span><br/>把"看一只股票"变成可复用的流水线</h1>
-    <p class="lead">一个面向 WorkBuddy 的投研 Skill：将"分析一只股票 / 一个板块 / 一次行情研究"固定成一条<strong>可复用、可复核、带风控闭环</strong>的 8 阶段流水线。价值不在"给一个结论"，而在把研究过程标准化——每个阶段产出结构化证据，串到下一阶段，最终汇聚成一份《投研决策备忘录》。</p>
+    <p class="lead">一份纯 Markdown 指令文件驱动的投研框架：将"分析一只股票 / 一个板块 / 一次行情研究"固定成一条<strong>可复用、可复核、带风控闭环</strong>的 8 阶段流水线。原生为 WorkBuddy 设计，但指令是纯文本，<strong>可直接装进 Codex、Claude Code、Cursor、Windsurf、Cline、Roo Code、GitHub Copilot 等任何读取"指令文件"的 Agent</strong>——一份框架，多处通用。</p>
     <div class="cta">
       <a class="btn primary" href="#install">⚡ 一键安装</a>
       <a class="btn ghost" href="#example">📈 看示例（中际旭创）</a>
@@ -196,15 +197,47 @@
 
   <!-- INSTALL -->
   <section id="install">
-    <h2><span class="num">⚡</span>安装</h2>
-    <p class="sub">两种方式，任选其一。</p>
-    <pre><span class="c"># 方式一：克隆到 WorkBuddy 技能目录</span>
-git clone https://github.com/ChadXie/a-share-research-framework.git \
-  ~/.workbuddy/skills/a-share-research-framework
+    <h2><span class="num">⚡</span>安装（跨 Agent 通用）</h2>
+    <p class="sub">本框架是纯 Markdown 指令文件，可装进任何会读取"指令文件"的 Agent。下面给出主流 Agent 的安装步骤。</p>
 
-<span class="c"># 方式二：直接把 SKILL.md 与本仓库配套文件复制到</span>
-<span class="c">#   ~/.workbuddy/skills/a-share-research-framework/</span></pre>
-    <p style="margin-top:14px;color:var(--muted);font-size:14px">重启 / 刷新 WorkBuddy 后，当对话出现"分析某只股票""做行情分析""筛选候选池""多空辩论""盯盘风控""复盘规则"等意图时，框架会自动加载。</p>
+    <div class="card" style="margin-bottom:18px">
+      <h4>🌐 跨 Agent 通用原理</h4>
+      <p>框架核心是一份纯文本指令（<code>SKILL.md</code>），不绑定 WorkBuddy 专有机制。把它的内容放进对应 Agent 的"系统指令 / 记忆文件"，即生效。</p>
+      <table style="margin-top:12px">
+        <thead><tr><th>Agent</th><th>指令文件位置</th><th>加载方式</th></tr></thead>
+        <tbody>
+          <tr><td><strong>WorkBuddy</strong></td><td><code>~/.workbuddy/skills/a-share-research-framework/SKILL.md</code></td><td>按意图自动加载</td></tr>
+          <tr><td><strong>Claude Code</strong></td><td><code>~/.claude/CLAUDE.md</code> 或 <code>./CLAUDE.md</code></td><td>每次会话自动遵循</td></tr>
+          <tr><td><strong>Codex</strong></td><td><code>codex.md</code> / <code>AGENTS.md</code>（项目根）</td><td>会话内自动遵循</td></tr>
+          <tr><td><strong>Cursor / Windsurf / Cline / Roo / Copilot</strong></td><td><code>AGENTS.md</code>（仓库根）</td><td>会话开始读取</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin:22px 0 10px;font-size:16px">① WorkBuddy</h3>
+    <pre>git clone https://github.com/ChadXie/a-share-research-framework.git \
+  ~/.workbuddy/skills/a-share-research-framework</pre>
+    <p style="color:var(--muted);font-size:14px">刷新 WorkBuddy 后，出现"分析股票 / 行情 / 候选池 / 多空 / 盯盘 / 复盘"等意图即自动加载。</p>
+
+    <h3 style="margin:22px 0 10px;font-size:16px">② Claude Code</h3>
+    <pre><span class="c"># 全局常驻：追加到 CLAUDE.md</span>
+cat a-share-research-framework/SKILL.md >> ~/.claude/CLAUDE.md
+
+<span class="c"># 或做成斜杠命令（项目级）</span>
+<span class="c"># 创建 .claude/commands/research.md，首行写：</span>
+<span class="c">#   analyze a stock using the 8-stage research framework: $ARGUMENTS</span>
+<span class="c"># 下面贴入 SKILL.md 正文，之后用 /research 中际旭创 触发</span></pre>
+
+    <h3 style="margin:22px 0 10px;font-size:16px">③ Codex（OpenAI）</h3>
+    <pre><span class="c"># 项目根写入 codex.md（或 AGENTS.md）</span>
+cp a-share-research-framework/SKILL.md ./codex.md
+<span class="c"># cp a-share-research-framework/SKILL.md ./AGENTS.md</span></pre>
+
+    <h3 style="margin:22px 0 10px;font-size:16px">④ Cursor / Windsurf / Cline / Roo / GitHub Copilot 等</h3>
+    <pre><span class="c"># 仓库根创建 AGENTS.md，写入 SKILL.md 全文</span>
+cp a-share-research-framework/SKILL.md ./AGENTS.md</pre>
+    <p style="color:var(--muted);font-size:14px">这些工具在会话开始读取 <code>AGENTS.md</code>，框架即生效；一处写入，所有支持该约定的 Agent 通用。</p>
+    <p style="color:var(--muted);font-size:13px;margin-top:10px">ℹ️ 若目标 Agent 对 YAML frontmatter 敏感，可删除 <code>SKILL.md</code> 顶部 <code>---</code> 之间的 frontmatter，仅保留正文。</p>
 
     <h3 style="margin:26px 0 12px;font-size:16px">仓库结构</h3>
     <div class="filetree">
@@ -234,7 +267,7 @@ git clone https://github.com/ChadXie/a-share-research-framework.git \
 
 <footer>
   <div class="wrap">
-    A股投研统一执行框架 · WorkBuddy Skill · MIT License · 由只读编排层 + 配套投研 Skill 组成
+    A股投研统一执行框架 · 可移植投研 Skill（WorkBuddy / Codex / Claude Code 等）· MIT License · 由纯 Markdown 指令 + 配套投研 Skill 组成
   </div>
 </footer>
 
