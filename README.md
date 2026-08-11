@@ -2,6 +2,8 @@
 
 一个面向 [WorkBuddy](https://www.workbuddy.cn) 的投研 Skill：把"分析一只股票 / 一个板块 / 做一次行情研究"固定成一条**可复用、可复核、带风控闭环**的 8 阶段流水线。
 
+🌐 在线预览（GitHub Pages）：https://ChadXie.github.io/a-share-research-framework/
+
 > 适用场景：A股 / 港股 / ETF 的个股与板块研究。本框架的价值不在于"给一个结论"，而在于把研究过程**标准化**——每一阶段都产出结构化证据，串到下一阶段，并最终汇聚成一份《投研决策备忘录》。
 
 ---
