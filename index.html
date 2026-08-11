@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>A股投研统一执行框架 · WorkBuddy Skill</title>
+<style>
+  :root{
+    --bg:#0f1216; --panel:#171b22; --panel2:#1e232c; --line:#2a313c;
+    --txt:#e7ecf3; --muted:#9aa7b8; --accent:#5b8cff;
+    --green:#2fbf71;   /* 多头 */
+    --red:#ff5b6e;     /* 反方/风险 */
+    --amber:#ffb020;   /* 争议 */
+    --purple:#a368ff;  /* 失效 */
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--txt);line-height:1.6;padding:0 0 60px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+  /* hero */
+  .hero{padding:64px 0 40px;background:radial-gradient(1200px 400px at 70% -10%,rgba(91,140,255,.18),transparent 60%)}
+  .hero .tag{display:inline-flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .pill{font-size:12px;padding:4px 11px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--panel)}
+  .hero h1{font-size:40px;line-height:1.25;font-weight:800;letter-spacing:-.5px}
+  .hero h1 .hl{color:var(--accent)}
+  .hero p.lead{margin-top:16px;font-size:17px;color:var(--muted);max-width:760px}
+  .cta{margin-top:28px;display:flex;gap:12px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:10px;font-weight:600;font-size:14px}
+  .btn.primary{background:var(--accent);color:#0b0e13}
+  .btn.ghost{border:1px solid var(--line);color:var(--txt)}
+  .btn:hover{transform:translateY(-1px);text-decoration:none;opacity:.95}
+
+  /* sections */
+  section{padding:40px 0;border-top:1px solid var(--line)}
+  h2{font-size:24px;font-weight:700;margin-bottom:6px}
+  h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:8px}
+  .sub{color:var(--muted);margin-bottom:24px}
+
+  /* pipeline */
+  .flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  @media(max-width:880px){.flow{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:520px){.flow{grid-template-columns:1fr}}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;position:relative;transition:.2s}
+  .step:hover{border-color:var(--accent);transform:translateY(-3px)}
+  .step .stage{font-size:12px;color:var(--muted)}
+  .step .role{display:inline-block;margin-top:8px;font-size:12px;padding:3px 9px;border-radius:999px;font-weight:600}
+  .step h3{font-size:15px;margin:10px 0 6px}
+  .step p{font-size:13px;color:var(--muted)}
+  .r-data{background:rgba(91,140,255,.15);color:#9fbcff}
+  .r-intel{background:rgba(47,191,113,.15);color:#74e0a4}
+  .r-ind{background:rgba(163,104,255,.15);color:#c9a6ff}
+  .r-uzi{background:rgba(255,176,32,.15);color:#ffcf6e}
+  .r-human{background:rgba(255,91,110,.15);color:#ff97a3}
+
+  /* why grid */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .card h4{font-size:15px;margin-bottom:6px}
+  .card p{font-size:14px;color:var(--muted)}
+
+  /* mapping table */
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px}
+  th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line)}
+  th{background:var(--panel2);color:var(--muted);font-weight:600;font-size:13px}
+  tr:last-child td{border-bottom:none}
+  code{background:var(--panel2);padding:2px 6px;border-radius:6px;font-size:13px;color:#cfe0ff}
+
+  /* example / UZI quadrant */
+  .quad{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+  @media(max-width:720px){.quad{grid-template-columns:1fr}}
+  .q{border-radius:14px;padding:18px;border:1px solid var(--line)}
+  .q.green{background:rgba(47,191,113,.08);border-color:rgba(47,191,113,.4)}
+  .q.red{background:rgba(255,91,110,.08);border-color:rgba(255,91,110,.4)}
+  .q.amber{background:rgba(255,176,32,.08);border-color:rgba(255,176,32,.4)}
+  .q.purple{background:rgba(163,104,255,.08);border-color:rgba(163,104,255,.4)}
+  .q h4{font-size:15px;margin-bottom:8px}
+  .q ul{margin-left:18px;font-size:13px;color:var(--muted)}
+  .q li{margin:4px 0}
+
+  /* install */
+  pre{background:#0b0e13;border:1px solid var(--line);border-radius:12px;padding:16px;overflow:auto;font-size:13px;color:#cfe0ff}
+  pre .c{color:#6b7686}
+  .filetree{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .filetree .dir{color:var(--accent)}
+
+  footer{padding:32px 0 0;color:var(--muted);font-size:13px;text-align:center;border-top:1px solid var(--line);margin-top:20px}
+  .badge-uzi{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);font-size:13px;color:var(--muted);margin-top:10px}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="tag">
+      <span class="pill">🧩 WorkBuddy Skill</span>
+      <span class="pill">📊 8 阶段流水线</span>
+      <span class="pill">🔁 风控闭环</span>
+      <span class="pill">⚖️ MIT License</span>
+    </div>
+    <h1>A股投研<span class="hl">统一执行框架</span><br/>把"看一只股票"变成可复用的流水线</h1>
+    <p class="lead">一个面向 WorkBuddy 的投研 Skill：将"分析一只股票 / 一个板块 / 一次行情研究"固定成一条<strong>可复用、可复核、带风控闭环</strong>的 8 阶段流水线。价值不在"给一个结论"，而在把研究过程标准化——每个阶段产出结构化证据，串到下一阶段，最终汇聚成一份《投研决策备忘录》。</p>
+    <div class="cta">
+      <a class="btn primary" href="#install">⚡ 一键安装</a>
+      <a class="btn ghost" href="#example">📈 看示例（中际旭创）</a>
+      <a class="btn ghost" href="https://github.com/ChadXie/a-share-research-framework">⭐ GitHub 仓库</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- WHY -->
+  <section id="why">
+    <h2>为什么需要它</h2>
+    <p class="sub">零散的"帮我看看 XX 股票"往往得不到一致、可复用的产出。本框架强制四件事：</p>
+    <div class="grid2">
+      <div class="card"><h4>① 角色分工</h4><p>数据员 → 情报员 → 行业研究员 → 投资委员会 → 人工裁决 → 盯盘风控员 → 复盘，每个角色对应具体 Skill，不再凭感觉。</p></div>
+      <div class="card"><h4>② 多空对冲</h4><p>UZI 多视角委员会强制产出四要素（多头 / 反方 / 争议 / 失效），刻意制造反方叙事，避免单边乐观。</p></div>
+      <div class="card"><h4>③ 人机协作</h4><p>WorkBuddy 负责证据链、数据核验与风险收益比计算，最终买卖由使用者本人拍板，不替你决策。</p></div>
+      <div class="card"><h4>④ 闭环复盘</h4><p>跟踪结果回灌筛选规则，越用越准——这是"框架"而非"一次性报告"的关键。</p></div>
+    </div>
+  </section>
+
+  <!-- PIPELINE -->
+  <section id="pipeline">
+    <h2><span class="num">01–08</span>8 阶段流水线</h2>
+    <p class="sub">从全市场到复盘闭环，每个阶段标注"由谁负责"。</p>
+    <div class="flow">
+      <div class="step"><div class="stage">阶段 ① 输入</div><span class="role r-data">全市场</span><h3>全市场股票</h3><p>起点：确定研究范围与候选标的。</p></div>
+      <div class="step"><div class="stage">阶段 ② 数据员</div><span class="role r-data">数据员</span><h3>数据筛选</h3><p>行情 / 财务 / 估值 / 资金面，形成候选股票池。</p></div>
+      <div class="step"><div class="stage">阶段 ③ 情报员</div><span class="role r-intel">情报员</span><h3>新闻 / 催化验证</h3><p>核验产业催化、订单、政策与事件真伪。</p></div>
+      <div class="step"><div class="stage">阶段 ④ 研究员</div><span class="role r-ind">行业研究员</span><h3>行业与产业链研究</h3><p>产业链位置、竞争格局、瓶颈与上下游。</p></div>
+      <div class="step"><div class="stage">阶段 ⑤ 委员会</div><span class="role r-uzi">投资委员会</span><h3>UZI 多视角委员会</h3><p>多空逻辑 / 反方观点 / 争议变量 / 失效条件。</p></div>
+      <div class="step"><div class="stage">阶段 ⑥ 人工</div><span class="role r-human">本人裁决</span><h3>本人最终判断</h3><p>汇总证据链，输出《投研决策备忘录》。</p></div>
+      <div class="step"><div class="stage">阶段 ⑦ 风控</div><span class="role r-human">盯盘风控员</span><h3>持续跟踪</h3><p>盘前 / 收盘自动化跟踪与预警。</p></div>
+      <div class="step"><div class="stage">阶段 ⑧ 闭环</div><span class="role r-intel">复盘</span><h3>复盘修正规则</h3><p>回灌筛选参数，修正并迭代规则。</p></div>
+    </div>
+  </section>
+
+  <!-- MAPPING -->
+  <section id="mapping">
+    <h2><span class="num">🗺</span>阶段 → 角色 → 技能映射</h2>
+    <p class="sub">本框架是"编排层"，具体执行依赖以下 Skill（未安装时给出降级方案，不中断流水线）。</p>
+    <table>
+      <thead><tr><th>阶段</th><th>角色</th><th>主用 Skill</th><th>备选</th></tr></thead>
+      <tbody>
+        <tr><td>② 数据筛选</td><td>数据员</td><td><code>a-stock-data</code></td><td><code>a-stock-screen</code> / <code>alphaear-stock</code></td></tr>
+        <tr><td>③ 催化验证</td><td>情报员</td><td><code>alphaear-news</code></td><td><code>a-stock-data</code>（新闻）</td></tr>
+        <tr><td>④ 产业链</td><td>行业研究员</td><td><code>industry-chain-analysis</code></td><td><code>serenity-skill</code></td></tr>
+        <tr><td>⑤ 委员会</td><td>投资委员会</td><td><code>UZI-Skill</code></td><td>—</td></tr>
+        <tr><td>⑦ 持续跟踪</td><td>盯盘风控员</td><td><code>a-share-watch-copilot</code></td><td><code>alphaear-signal-tracker</code></td></tr>
+        <tr><td>⑧ 复盘</td><td>复盘</td><td><code>a-stock-screen</code> / <code>a-stock-data</code></td><td>工作区记忆</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- EXAMPLE -->
+  <section id="example">
+    <h2><span class="num">📈</span>完整示例：中际旭创（300308）</h2>
+    <p class="sub">以 AI 算力链光模块龙头为例，演示框架的完整产出。下方为 UZI 委员会四要素缩略，完整可视化见示例文件。</p>
+
+    <div class="quad">
+      <div class="q green"><h4>🟢 多头逻辑</h4><ul>
+        <li>业绩兑现最硬：2026Q1 营收 +192%、净利 +262%</li>
+        <li>英伟达 1.6T 光模块份额约 80%，缺口订单排至 2027</li>
+        <li>PEG≈0.45，按 2026E 净利约 220 亿看似便宜</li>
+      </ul></div>
+      <div class="q red"><h4>🔴 反方观点</h4><ul>
+        <li>PE(2025)≈96x，较高位已回撤约 37%</li>
+        <li>AI 资本开支见顶风险（云厂 FCF 转负、穆迪表外债警告）</li>
+        <li>客户集中（前五大 81.9%）、存货 +53% 至 194 亿</li>
+      </ul></div>
+      <div class="q amber"><h4>🟡 争议变量</h4><ul>
+        <li>2027 年 1.6T 真实价格 / 需求指引尚未被证实</li>
+        <li>1.6T 渗透节奏与 ASP 下滑斜率</li>
+      </ul></div>
+      <div class="q purple"><h4>🟣 失效条件</h4><ul>
+        <li>大客户下修 2027 capex</li>
+        <li>中报毛利率跌破 28% / 存货减值</li>
+        <li>放量跌破 800 元</li>
+      </ul></div>
+    </div>
+
+    <div class="badge-uzi">📌 <strong>结论：</strong>中长期看多、短线不追高——"三高"状态（高拥挤 / 高波动 / 高估值）下不建议情绪高位追涨。</div>
+
+    <p style="margin-top:18px">
+      ▶ 完整可视化报告：<a href="examples/中际旭创_投研可视化.html">中际旭创_投研可视化.html</a><br/>
+      ▶ 文本版备忘录：<a href="examples/中际旭创_投研决策备忘录.md">中际旭创_投研决策备忘录.md</a><br/>
+      ▶ 可复用空白模板：<a href="examples/投研决策备忘录_模板.md">投研决策备忘录_模板.md</a>
+    </p>
+  </section>
+
+  <!-- INSTALL -->
+  <section id="install">
+    <h2><span class="num">⚡</span>安装</h2>
+    <p class="sub">两种方式，任选其一。</p>
+    <pre><span class="c"># 方式一：克隆到 WorkBuddy 技能目录</span>
+git clone https://github.com/ChadXie/a-share-research-framework.git \
+  ~/.workbuddy/skills/a-share-research-framework
+
+<span class="c"># 方式二：直接把 SKILL.md 与本仓库配套文件复制到</span>
+<span class="c">#   ~/.workbuddy/skills/a-share-research-framework/</span></pre>
+    <p style="margin-top:14px;color:var(--muted);font-size:14px">重启 / 刷新 WorkBuddy 后，当对话出现"分析某只股票""做行情分析""筛选候选池""多空辩论""盯盘风控""复盘规则"等意图时，框架会自动加载。</p>
+
+    <h3 style="margin:26px 0 12px;font-size:16px">仓库结构</h3>
+    <div class="filetree">
+<span class="dir">a-share-research-framework/</span><br/>
+├── SKILL.md              <span style="color:#6b7686"># 框架本体（8 阶段流水线）</span><br/>
+├── README.md             <span style="color:#6b7686"># 文档</span><br/>
+├── index.html            <span style="color:#6b7686"># 本页（GitHub Pages 落地页）</span><br/>
+├── LICENSE               <span style="color:#6b7686"># MIT</span><br/>
+├── .gitignore<br/>
+└── <span class="dir">examples/</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;├── 中际旭创_投研可视化.html<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;├── 中际旭创_投研决策备忘录.md<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;└── 投研决策备忘录_模板.md
+    </div>
+  </section>
+
+  <!-- COMPLIANCE -->
+  <section id="compliance">
+    <h2><span class="num">⚠</span>合规与免责</h2>
+    <div class="card">
+      <p>本框架产出的是<strong>研究观点，非投资建议</strong>，不承诺收益、不诱导追涨。涉及投资建议或对外发布内容时，请按你所在机构的合规模板附风险提示与执业标识。最终买卖决策由使用者本人独立判断，风险自担。</p>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    A股投研统一执行框架 · WorkBuddy Skill · MIT License · 由只读编排层 + 配套投研 Skill 组成
+  </div>
+</footer>
+
+</body>
+</html>
